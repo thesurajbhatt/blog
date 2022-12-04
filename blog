@@ -1,0 +1,265 @@
+***UltraSonic ***
+
+#define ECHO 6
+#define TRIG 7
+
+long duration;
+int distance;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ECHO, INPUT);
+  pinMode(TRIG, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  duration = pulseIn(ECHO, HIGH);
+  distance = (duration * 0.034) / 2;
+  Serial.println(distance);
+}
+
+
+
+
+***Pullup Button***
+
+#define PULLUPBTN 13
+#define LED 12
+
+void setup() {
+  pinMode(PULLUPBTN, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);
+}
+
+void loop() {
+  if (digitalRead(PULLUPBTN) == LOW) {
+    digitalWrite(LED, HIGH);
+  } else {
+    digitalWrite(LED, LOW);
+  }
+}
+
+***DHT Sensor ***
+
+#include "DHT.h"
+#define DHTTYPE DHT11
+DHT dhtSensor(7, DHTTYPE);
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(A0, INPUT);
+  Serial.begin(9600);
+  dhtSensor.begin();
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  float temp = dhtSensor.readTemperature();
+  float hmdt = dhtSensor.readHumidity();
+  Serial.println("Temperature is = ");
+  Serial.println(temp);
+  Serial.println("Humidity is = ");
+  delay(500);
+}
+
+
+***IR Sensor ***
+
+
+void setup() {
+pinMode(8,INPUT);
+Serial.begin(9600);
+}
+
+void loop() {
+if(digitalRead(8)==LOW){
+  Serial.println("1");
+}
+else{
+  Serial.println("0");
+}
+}
+
+
+***LCD ***
+
+#include <LiquidCrystal.h>
+
+int rs = 13, en = 12, d4 = 11, d5 = 10, d6 = 9, d7 = 8;
+
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Praful");
+  lcd.setCursor(0,1); 
+}
+
+void loop() {  
+}
+
+
+***Palidrom***
+
+Skip to content
+Product
+Solutions
+Open Source
+Pricing
+Search
+Sign in
+Sign up
+This repository has been archived by the owner on Nov 28, 2022. It is now read-only.
+Prafulm8o6
+/
+iot-programs
+Public archive
+Code
+Issues
+Pull requests
+Actions
+Projects
+Security
+Insights
+iot-programs/A2Q4.ino
+@Prafulm8o6
+Prafulm8o6 iot programs
+Latest commit 5612769 6 days ago
+ History
+ 1 contributor
+59 lines (45 sloc)  1.1 KB
+
+// A2Q4. Take only 3 readings of ultrasonic sensor (after trigger) at the intervals of 2 seconds then stop taking further readings. Average the readings and find out if that number is palindrome number or not. And display the output in LCD.
+
+#include <LiquidCrystal.h>
+
+#define ECHO 6
+#define TRIG 7
+
+long duration;
+int distance;
+
+int rs = 13, en = 12, d4 = 11, d5 = 10, d6 = 9, d7 = 8, sum, avg, n, r, s = 0, temp;
+
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  pinMode(ECHO, INPUT);
+  pinMode(TRIG, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  duration = pulseIn(ECHO, HIGH);
+  distance = (duration * 0.034) / 2;
+  sum = 0;
+
+  for (int i = 0; i < 3; i++) {
+    sum += distance;
+  }
+
+  avg = sum / 3;
+
+  n = avg;
+
+  temp = n;
+
+  while (n > 0) {
+    r = n % 10;
+    s = (s * 10) + r;
+    n = n / 10;
+  }
+
+  Serial.println(distance);
+  lcd.clear();
+
+  if (temp == s)
+  {
+    lcd.print("palindrome");
+  }
+  else
+  {
+    lcd.print("not palindrome");
+  }
+}
+
+***  average Humidity ***
+
+#include "DHT.h"
+#define DHTPIN 13
+#define DHTTYPE DHT11
+
+int arr[10];
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(DHTPIN, INPUT);
+  dht.begin();
+}
+
+void loop() {
+
+  int sumOfH = 0;
+  int sumOfTempC = 0;
+  int sumOfTempF = 0;
+
+  for (int i = 0; i < 10; i++) {
+    float h = dht.readHumidity();
+    arr[i] = h;
+    sumOfH = sumOfH + h;
+    Serial.print("Humidity");
+    Serial.print(" : ");
+    Serial.println(h);
+    delay(1000);
+  }
+
+  delay(1000);
+  Serial.print("Average");
+  Serial.print(" : ");
+  Serial.println(sumOfH / 10);
+  delay(1000);
+
+  for (int i = 0; i < 3; i++) {
+    float c = dht.readTemperature();
+    float f = dht.readTemperature(true);
+    sumOfTempC = sumOfTempC + c;
+    sumOfTempF = sumOfTempF + f;
+  }
+  delay(1000);
+
+  Serial.print("Celcius : ");
+  Serial.print(sumOfTempC);
+  if (sumOfTempC % 2 == 0) {
+    Serial.println(" number is even...");
+  } else {
+    Serial.println(" number is odd...");
+  }
+
+  Serial.print("Feranhate : ");
+  Serial.print(sumOfTempF);
+  if (sumOfTempF % 2 == 0) {
+    Serial.println(" number is even...");
+  } else {
+    Serial.println(" number is odd...");
+  }
+
+  delay(1000);
+}
+
+
+***
+
+***
