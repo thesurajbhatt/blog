@@ -74,4 +74,58 @@
     
     
     
+    *****
+    
+     Service1Client sc;
+
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if(!IsPostBack)
+        {
+            loadData();
+        }
+    }
+
+    protected void btnInsert_Click(object sender, EventArgs e)
+    {
+        sc = new Service1Client();
+        StudentClass stud = new StudentClass();
+        stud.name = txtName.Text;
+        stud.email = txtEmail.Text;
+        stud.dob = DateTime.Parse(txtDob.Text);
+        stud.mobno = Convert.ToInt64(txtMobno.Text);
+        sc.insertData(stud);
+        loadData();
+    }
+
+    public void loadData()
+    {
+        sc = new Service1Client();
+        GridView1.DataSource = sc.loadData();
+        GridView1.DataBind();
+    }
+
+    protected void btnUpadte_Click(object sender, EventArgs e)
+    {
+        sc = new Service1Client();
+        StudentClass stud = new StudentClass();
+        stud.id = Convert.ToInt32(txtID.Text);
+        stud.name = txtName.Text;
+        stud.email = txtEmail.Text;
+        stud.dob = DateTime.Parse(txtDob.Text);
+        stud.mobno = Convert.ToInt64(txtMobno.Text);
+        sc.updateData(stud);
+        loadData();
+    }
+
+    protected void btnDelete_Click(object sender, EventArgs e)
+    {
+        sc = new Service1Client();
+        StudentClass stud = new StudentClass();
+        stud.id = Convert.ToInt32(txtID.Text);
+        sc.deleteData(stud);
+        loadData();
+    }
+    
+    
     
