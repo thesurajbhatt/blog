@@ -1,299 +1,110 @@
-1. STAGE 111
+//server.js
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.ServiceModel.Web;
-using System.Text;
+const express=require('express')
+const mongoose=require('mongoose')
+const app=express()
+const routesStud=require('./routes/student_route')
+const cors=require('cors')
 
-namespace WcfServiceApp
-{
-    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the interface name "IService1" in both code and config file together.
-    [ServiceContract]
-    public interface IService1
-    {
-        [OperationContract]
-        string insertData(StudentClass stud);
+mongoose.connect('mongodb://localhost:27017/student')
+app.use(express.json)
+app.use(cors())
+app.use('/student',routesStud)
 
-        [OperationContract]
-        string updateData(StudentClass stud);
+app.listen(5000,()=>{
+    console.log('server started')
+})
 
-        [OperationContract]
-        string deleteData(StudentClass stud);
+//student_models
 
-        [OperationContract]
-        List<StudentClass> loadData();
+const mongoose=require('mongoose')
+const singup=new mongoose.Schema({
+    name:{
+        type:String,
+        required:true,
+    },
 
+    email:{
+        type:String,
+        required:true,
+    },
+
+    phone:{
+        type:String,
+        required:true,
+    },
+
+    username:{
+        type:String,
+        required:true,
+    },
+
+    password:{
+        type:String,
+        required:true,
+    },
+
+    sign_date:{
+        type:String,
+        default:Date.now
     }
+})
+module.exports=mongoose.model('student_master',singup)
+
+//student_routes.js
 
 
-    // Use a data contract as illustrated in the sample below to add composite types to service operations.
-    [DataContract]
-    public class StudentClass
-    {
-        [DataMember]
-        public int id { get; set; }
-        [DataMember]
-        public string name{ get; set; }
-        [DataMember]
-        public string email { get; set; }
-        [DataMember]
-        public DateTime dob { get; set; }
-        [DataMember]
-        public long mobno { get; set; }
-    }
-}
-
-2. STAGE 222
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.ServiceModel;
-using System.ServiceModel.Web;
-using System.Text;
-using System.Data.SqlClient;
-
-namespace WcfServiceApp
-{
-    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in code, svc and config file together.
-    // NOTE: In order to launch WCF Test Client for testing this service, please select Service1.svc or Service1.svc.cs at the Solution Explorer and start debugging.
-    public class Service1 : IService1
-    {
-        string conStr = "";
-        string sqlQuery = "";
-        SqlConnection con;
-        SqlCommand cmd;
-        SqlDataReader dr;
-
-        public Service1()
-        {
-           conStr = "Data Source=.\\sqlexpress;Initial Catalog=extdb;Integrated Security=True";
-        }
-
-        public string insertData(StudentClass stud)
-        {
-            sqlQuery = "INSERT INTO Student_Mst(name, email, dob, mobno) VALUES('"+ stud.name + "','" + stud.email + "','" + stud.dob + "'," + stud.mobno + ")";
-            con = new SqlConnection(conStr);
-            cmd = new SqlCommand(sqlQuery,con);
-            con.Open();
-            cmd.ExecuteNonQuery();
-            con.Close();
-            return "Inserted.";
-        }
-
-        public string updateData(StudentClass stud)
-        {
-            sqlQuery = "UPDATE Student_Mst SET name = '" + stud.name + "', email = '" + stud.email + "', dob = '" + stud.dob + "', mobno = " + stud.mobno + " WHERE id = "+ stud.id +"";
-            con = new SqlConnection(conStr);
-            cmd = new SqlCommand(sqlQuery, con);
-            con.Open();
-            cmd.ExecuteNonQuery();
-            con.Close();
-            return "Updated.";
-        }
-
-        public string deleteData(StudentClass stud)
-        {
-            sqlQuery = "DELETE FROM Student_Mst WHERE id = " + stud.id + "";
-            con = new SqlConnection(conStr);
-            cmd = new SqlCommand(sqlQuery, con);
-            con.Open();
-            cmd.ExecuteNonQuery();
-            con.Close();
-            return "Deleted.";
-        }
-
-        public List<StudentClass> loadData()
-        {
-            List<StudentClass> studList = new List<StudentClass>();
-            StudentClass stud;
-
-            sqlQuery = "SELECT * FROM Student_Mst";
-            con = new SqlConnection(conStr);
-            cmd = new SqlCommand(sqlQuery, con);
-            con.Open();
-            dr = cmd.ExecuteReader();
-            if(dr.HasRows)
-            {
-                while(dr.Read())
-                {
-                    stud = new StudentClass();
-                    stud.id = Convert.ToInt32(dr[0].ToString());
-                    stud.name = dr[1].ToString();
-                    stud.email = dr[2].ToString();
-                    stud.dob = DateTime.Parse(dr[3].ToString());
-                    stud.mobno = Convert.ToInt64(dr[4].ToString());
-                    studList.Add(stud);
-                }
-            }
-            con.Close();
-            return studList;
-        }
-    }
-}
+const express=require('express')
+const router=express.Router()
+const signupinfo=require('../models/student_models')
 
 
-
-3. STAGE 333  (AXPS.CS)
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using ServiceReference1;
-
-public partial class _Default : System.Web.UI.Page
-{
-
-    Service1Client sc;
-
-    protected void Page_Load(object sender, EventArgs e)
-    {
-        if(!IsPostBack)
-        {
-            loadData();
-        }
-    }
-
-    protected void btnInsert_Click(object sender, EventArgs e)
-    {
-        sc = new Service1Client();
-        StudentClass stud = new StudentClass();
-        stud.name = txtName.Text;
-        stud.email = txtEmail.Text;
-        stud.dob = DateTime.Parse(txtDob.Text);
-        stud.mobno = Convert.ToInt64(txtMobno.Text);
-        sc.insertData(stud);
-        loadData();
-    }
-
-    public void loadData()
-    {
-        sc = new Service1Client();
-        GridView1.DataSource = sc.loadData();
-        GridView1.DataBind();
-    }
-
-    protected void btnUpadte_Click(object sender, EventArgs e)
-    {
-        sc = new Service1Client();
-        StudentClass stud = new StudentClass();
-        stud.id = Convert.ToInt32(txtID.Text);
-        stud.name = txtName.Text;
-        stud.email = txtEmail.Text;
-        stud.dob = DateTime.Parse(txtDob.Text);
-        stud.mobno = Convert.ToInt64(txtMobno.Text);
-        sc.updateData(stud);
-        loadData();
-    }
-
-    protected void btnDelete_Click(object sender, EventArgs e)
-    {
-        sc = new Service1Client();
-        StudentClass stud = new StudentClass();
-        stud.id = Convert.ToInt32(txtID.Text);
-        sc.deleteData(stud);
-        loadData();
-    }
-}
+//Insert
+router.post('/signup',async (req,res)=>{
+    const signupentry=new signupinfo({
+        name:req.body.name,
+        email:req.body.email,
+        phone:req.body.phone,
+        username:req.body.username,
+        password:req.body.password,
+    })
+    signupentry.save()
+})
 
 
+//Display 
+router.get('/dispStudent',async(req,res)=>{
+    const data= await signupinfo.find()
+    res.json(data)
+})
 
-4. STAGE 444 (DESIGN PART)
-
-
-
-<%@ Page Language="C#" AutoEventWireup="true" CodeFile="Default.aspx.cs" Inherits="_Default" %>
-
-<!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head runat="server">
-    <title></title>
-</head>
-<body>
-    <form id="form1" runat="server">
-
-    <div>
-        <br />
-        <asp:TextBox ID="txtID" runat="server" TextMode="Number"></asp:TextBox>
-        <br />
-        <br />
-        <asp:TextBox ID="txtName" runat="server"></asp:TextBox>
-        <br />
-        <br />
-        <asp:TextBox ID="txtEmail" runat="server" TextMode="Email"></asp:TextBox>
-        <br />
-        <br />
-        <asp:TextBox ID="txtDob" runat="server" TextMode="Date"></asp:TextBox>
-        <br />
-        <br />
-        <asp:TextBox ID="txtMobno" runat="server" TextMode="Number"></asp:TextBox>
-        <br />
-        <br />
-        <asp:Button ID="btnInsert" runat="server" Text="Insert" OnClick="btnInsert_Click" />
-        &nbsp;<asp:Button ID="btnUpadte" runat="server" Text="Update" OnClick="btnUpadte_Click" />
-        &nbsp;<asp:Button ID="btnDelete" runat="server" Text="Delete" OnClick="btnDelete_Click" />
-        &nbsp;<br />
-        <br />
-        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False">
-            <Columns>
-                <asp:BoundField DataField="id" HeaderText="ID" />
-                <asp:BoundField DataField="name" HeaderText="Name" />
-                <asp:BoundField DataField="email" HeaderText="Email" />
-                <asp:BoundField DataField="dob" DataFormatString="{0:dd/MM/yyyy}" HeaderText="Date Of Birth" />
-                <asp:BoundField DataField="mobno" HeaderText="Mobile No" />
-            </Columns>
-        </asp:GridView>    
-    </div>
-    </form>
-</body>
-</html>
+module.exports=router
 
 
-==========
+//test.rest
 
-public string generateID(StudentClass stud)
-{
-string id= stud.dob.Month +"_"+ stud.dob.Day + "_"+stud.name.Substring(0,3);
-return id;
-}
+const express=require('express')
+const router=express.Router()
+const signupinfo=require('../models/student_models')
 
-========
-public List<studentdetails> searchData(studentdetails stud)
-        {
-            List<studentdetails> studentlist = new List<studentdetails>();
-            studentdetails sd;
-            SqlConnection con = new SqlConnection(str);
-            con.Open();
-            string query = "select * from mytab where id = "+ stud.id +"";
-            SqlCommand cmd = new SqlCommand(query,con);
-            SqlDataReader dr = cmd.ExecuteReader();
-            if (dr.HasRows)
-            {
-                while (dr.Read())
-                {
-                    sd = new studentdetails();
-                    sd.id = Convert.ToInt32(dr[0].ToString());
-                    sd.name = dr[1].ToString();
-                    sd.address = dr[2].ToString();
-                    sd.dob = DateTime.Parse(dr[3].ToString());
-                    sd.mobno = Convert.ToInt64(dr[4].ToString());
-                    studentlist.Add(sd);
-                }
-            }
 
-            return studentlist;
-        }
-        
-        =======
-        
-        [OperationContract]
-        List<studentdetails> searchData(studentdetails stud);
+//Insert
+router.post('/signup',async (req,res)=>{
+    const signupentry=new signupinfo({
+        name:req.body.name,
+        email:req.body.email,
+        phone:req.body.phone,
+        username:req.body.username,
+        password:req.body.password,
+    })
+    signupentry.save()
+})
+
+
+//Display 
+router.get('/dispStudent',async(req,res)=>{
+    const data= await signupinfo.find()
+    res.json(data)
+})
+
+module.exports=router
