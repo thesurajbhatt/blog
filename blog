@@ -72,7 +72,7 @@ router.post('/signup',async (req,res)=>{
 })
 
 
-//Display 
+#Display 
 router.get('/dispStudent',async(req,res)=>{
     const data= await signupinfo.find()
     res.json(data)
@@ -83,28 +83,137 @@ module.exports=router
 
 //test.rest
 
-const express=require('express')
-const router=express.Router()
-const signupinfo=require('../models/student_models')
+POST http://localhost:5000/student/signup
+Content-Type: application/json
+
+{
+    "name": "sample",
+    "email":"thesurajbhatt@gmail.com",
+    "phone":"7990573362",
+    "username":"test",
+    "passwors":"test123"
+}
+
+###
 
 
-//Insert
-router.post('/signup',async (req,res)=>{
-    const signupentry=new signupinfo({
-        name:req.body.name,
-        email:req.body.email,
-        phone:req.body.phone,
-        username:req.body.username,
-        password:req.body.password,
+GET http://localhost:5000/student/dispStudent
+
+
+//app.js client
+import './App.css';
+import CreateStudent from './comp/CreateStudent'
+import DisplayStudent from './comp/DisplayStudent'
+function App() {
+  return (
+    <div className="App">
+      {/*<CreateStudent/>*/}
+      <DisplayStudent/>
+    </div>
+  );
+}
+
+export default App;
+
+//CreateStudent
+
+import React,{useState} from 'react'
+import axios  from 'axios'
+
+export const CreateStudent = () => {
+    const [name,setName]=useState('')
+    const [email,setEmail]=useState('')
+    //'''
+    const handleName=(e)=>{
+        setName(e.target.value)
+    }
+    const handleEmail=(e)=>{
+        setEmail(e.target.value)
+    }
+    const collectData=async()=>{
+        try{
+        let insertData=axios.post('http://localhost:5000/student/signup',{
+            name,
+            email,
+            //lastone
+        });
+    }
+    catch(error){
+        console.log(error)
+    }
+    }
+  return (
+    <div>
+        <div className="App">
+            <header className="App-header">
+                <h3>Student Registration</h3>
+                <label>
+                    Name:
+                </label><br/>
+                <input type="text" name="name" value={name} required onChange={(e)=>handleName(e)}/><br/>
+                <label>
+                    Email:
+                </label><br/>
+                <input type="email" name="name" value={email} required onChange={(e)=>handleEmail(e)}/><br/>
+                <button type='button' onClick={collectData}>Submit</button>
+            </header>
+        </div>
+    </div>
+  )
+}
+export default CreateStudent
+
+
+//DisplayStudent
+import React from 'react'
+import {useState,useEffect} from 'react'
+import axios from 'axios'
+
+const DisplayStudent = () => {
+    const [data,setData]=useState([]); 
+
+    useEffect(()=>{
+        const getdata= async()=>{
+            try{
+            const result= await axios.get('http://localhost:5000/student/dispStudent')
+            setData(result.data)
+        }
+        catch(error){
+            console.log(error)
+        }
+        }
+        getdata()
+    },[])
+    const studentrecord=data.localeCompare((d)=>{
+        return(
+            <tr>
+                <td>{d.name}</td>
+                <td>{d.email}</td>
+                <td>{d.phone}</td>
+                <td>Edit</td>
+                <td>Delete</td>
+            </tr>
+        )
     })
-    signupentry.save()
-})
+
+  return (
+    <div>
+        <table className='table table-hover'>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <td>Edit</td>
+                <td>Delete</td>
+            </tr>
+            {studentrecord}
+        </table>
+    </div>
+  )
+}
+
+export default DisplayStudent
 
 
-//Display 
-router.get('/dispStudent',async(req,res)=>{
-    const data= await signupinfo.find()
-    res.json(data)
-})
 
-module.exports=router
+
