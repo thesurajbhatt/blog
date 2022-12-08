@@ -246,7 +246,121 @@ home.blade.php
 ============================
 
 
-Login
+///Registration
+
+@extends('appheader')
+@section('main')
+<center><h1>Register User</h1></center>
+@if(Session::has('status'))
+    <div class="alert alert-success">
+        {{ Session::get('status') }}
+    </div>
+@endif
+<div style="margin-right: 500px;margin-left: 500px">
+   <form action="/add-user" method="post" enctype="multipart/form-data">
+    @csrf
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Name</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1"  name="name">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Password</label>
+        <input type="password" class="form-control" id="exampleFormControlInput1" name="password">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Work</label>
+        <input type="text" class="form-control" id="exampleFormControlInput1"  name="work">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Status</label>
+        <input type="text" class="form-control"  name="status">
+    </div>
+    <div class="mb-3">
+        <label for="exampleFormControlInput1" class="form-label">Profile</label>
+        <input type="file" class="form-control"  name="file">
+    </div>
+    <center><input type="submit" value="Submit"></center>
+    
+   </form>
+</div>
+@endsection
+
+
+
+/////Login
+
+
+@extends('appheader')
+@section('main')
+<center><h1>Login User</h1></center>
+
+<div style="margin-right: 500px;margin-left: 500px">
+    <form method="post">
+     @csrf
+     <div class="mb-3">
+         <label for="exampleFormControlInput1" class="form-label">Name</label>
+         <input type="text" class="form-control" id="exampleFormControlInput1"  name="name">
+     </div>
+     <div class="mb-3">
+         <label for="exampleFormControlInput1" class="form-label">Password</label>
+         <input type="password" class="form-control" id="exampleFormControlInput1" name="password">
+     </div>
+     
+     <center><input type="submit" value="Submit"></center>
+     
+    </form>
+ </div>
+@endsection
+
+
+//////web
+
+Route::get('/registration',[projectController::class,'create']);
+Route::post('/add-user',[projectController::class,'store']);
+Route::get('/login',[projectController::class,'login']);
+Route::post('/login',[projectController::class,'loginUser']);
+
+////
+public function loginUser(Request $req)
+    {
+        $res=DB::table('user')->where("name",$req->name)->where("password",$req->password)->get();
+        if(count($res)>0){
+            session()->put('name',$req->name);
+            session()->put('id',$req->id);
+            $data=DB::table('user')->get();
+        return view('welcome',["userData"=>$data])->with('status',"Login Failed!");
+        }else{
+            return view('login')->with('status',"Login Failed!");
+
+        }
+    }
+    
+    
+    ////
+    public function store(Request $req)
+    {
+        $file=$req->file;
+        $tempName=$file->getClientOriginalName();
+        $imageExt=array('png','jpg','jpeg');
+        $ext=$file->getClientOriginalExtension();
+        $newName=time().'.'.$ext;
+        $req->file->move(public_path('upload'),$newName);
+        $res=DB::table('user')->insert([
+            "name"=>$req->name,
+            "password"=>$req->password,
+            "work"=>$req->work,
+            "status"=>$req->status,
+            "profile"=>$newName
+        ]);
+        echo "<script>alert('Data Register!');</script>";
+        return view('registration')->with('status',"Data Register!");;
+
+    }
+
+
+
+
+Login-aaaaa
 
 
 public function create()
